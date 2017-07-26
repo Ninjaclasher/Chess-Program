@@ -4,6 +4,7 @@
  *??Add option to end game anytime
  *??Add option to choose another piece to move
  *Check for bugs
+ *Split classes to separate files
  */
 #include <algorithm>
 #include <bitset>
