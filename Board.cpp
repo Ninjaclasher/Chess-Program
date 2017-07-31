@@ -37,19 +37,19 @@ pair<int,bool> Board::nextTurn(bool &playerTurn)
 void Board::displayBoard(const bool side)
 {
     int startX = (side ? 11 : 0), endX = (side ? -1 : 12);
-    cout<<endl;
+    cout<<endl<<endl;
     for (int x = startX; x != endX; x += (endX-startX)/abs(endX-startX))
     {
         if (x == 1 || x == 10)
             cout<<" ~+~~~~~~~~~~~~~~~~~+~"<<endl;
         else if (x == 0 || x == 11)
-            cout<<" X| 0 1 2 3 4 5 6 7 |X"<<endl;
+            cout<<" X\u2502 0 1 2 3 4 5 6 7 \u2502X"<<endl;
         else
         {
-            cout<<" "<<x-2<<"| ";
+            cout<<" "<<x-2<<"\u2502 ";
             for (auto& y : range)
                 cout<<board[x-2][y]<<" ";
-            cout<<"|"<<x-2<<endl;
+            cout<<"\u2502"<<x-2<<endl;
         }
     }
     cout<<endl;
@@ -248,8 +248,7 @@ bool Board::repetition()
 // -1 = appended valid moves, 0 = not in check, 1 = checkmate
 int Board::checkmate (bool side)
 {
-    char piece = (side ? 'k' : 'K');
-    vector<pair<int,int>> kingPos = returnPos(piece);
+    vector<pair<int,int>> kingPos = returnPos(side ? 'k' : 'K');
     if (kingPos.empty()) return 1;
     vector<pair<int,int>> checker = board[kingPos[0].first][kingPos[0].second].inCheck(board[kingPos[0].first][kingPos[0].second].getPiece());
     if (checker.empty()) return 0;

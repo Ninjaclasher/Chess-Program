@@ -27,7 +27,14 @@ public:
     static Piece make_piece(Board*);
     static inline int getColour (const char piece) {return (piece == '.' ? 2 : (piece == 'q' || piece == 'r' || piece == 'b' || piece == 'n' || piece == 'k' || piece == 'p' ? 1 : 0));}
     static inline char sameColour(const char basePiece, const char piece) {return getColour(basePiece) == getColour(piece) ? piece : oppositePiece[piece];}
-    friend ostream& operator<<(ostream& os, const Piece& thisPiece) {return os<<pieceDisplay[thisPiece.getPiece()];}
+    friend ostream& operator<<(ostream& os, const Piece& thisPiece) 
+    {
+#ifdef __unix__
+        return os<<pieceDisplay[thisPiece.getPiece()];
+#else
+        return os<<thisPiece.getPiece();
+#endif 
+    }
     int getColour () const;
     pair<int,int> getPos() const;
     char getPiece () const;
