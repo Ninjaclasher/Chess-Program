@@ -1,10 +1,22 @@
-/*TODO LIST
- *Add 3-time repetition
- *Allow game state saving and reloading
- *??Add option to end game anytime
- *??Add option to choose another piece to move
- *Check for bugs
- */
+/**********************************************************************************
+*      main.cpp                                                                   *
+*                                                                                 *
+*                                                                                 *
+*      This program is free software; you can redistribute it and/or modify       *
+*      it under the terms of the GNU General Public License as published by       *
+*      the Free Software Foundation; either version 2 of the License, or          *
+*      (at your option) any later version.                                        *
+*                                                                                 *
+*      This program is distributed in the hope that it will be useful,            *
+*      but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+*      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+*      GNU General Public License for more details.                               *
+*                                                                                 *
+*      You should have received a copy of the GNU General Public License          *
+*      along with this program; if not, see <http://www.gnu.org/licenses/>.       *
+*                                                                                 *
+***********************************************************************************/
+
 #include "Chess.h"
 
 using namespace std;
@@ -80,7 +92,7 @@ void help()
 pair<int,int> startChessGame(Board &game)
 {
     char piece;
-    bool playerTurn = true, loop = true;;
+    bool playerTurn = true, loop = true;
     while (true)
     {
         playerTurn ^= loop;
@@ -141,20 +153,8 @@ pair<int,int> startChessGame(Board &game)
     return make_pair(255, 0);
 }
 
-void initialize()
-{
-#ifdef __unix__
-    system("printf '\e[8;30;75t'");
-    system("clear");
-#elif _WIN32
-    system("MODE 80,25");
-    system("cls");
-#endif    
-}
-
 int main()
 {
-    initialize();
     Board game;
     pair<int,bool> state = startChessGame(game);  // (first) 0 = checkmate, 1 = stalemate, 2 = draw, 3 = resign, 4 = exit, 255 = unknown (second) 0 = white 1 = black
     switch(state.first)

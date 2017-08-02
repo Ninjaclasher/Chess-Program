@@ -1,3 +1,22 @@
+/**********************************************************************************
+*      Chess.h                                                                    *
+*                                                                                 *
+*                                                                                 *
+*      This program is free software; you can redistribute it and/or modify       *
+*      it under the terms of the GNU General Public License as published by       *
+*      the Free Software Foundation; either version 2 of the License, or          *
+*      (at your option) any later version.                                        *
+*                                                                                 *
+*      This program is distributed in the hope that it will be useful,            *
+*      but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+*      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+*      GNU General Public License for more details.                               *
+*                                                                                 *
+*      You should have received a copy of the GNU General Public License          *
+*      along with this program; if not, see <http://www.gnu.org/licenses/>.       *
+*                                                                                 *
+***********************************************************************************/
+
 #ifndef CHESS_H
 #define CHESS_H
 
@@ -9,7 +28,6 @@ struct Move
     int startX = 0, startY = 0, endX = 0, endY = 0,
         rookStartX = 0, rookStartY = 0, rookEndX = 0, rookEndY = 0, pawnSpecial = 0; //0 = nothing, 1 = en passant, 2 = promotion
     char takenPiece = '.';
-
     Move(int, int, int, int, char); //Normal Move
     Move(int, int, int, int, char, int); //Normal Move with special pawn move
     Move(int, int, int, int, int, int, int, int, bool); //Castle move
@@ -22,9 +40,9 @@ class Piece
     friend class Board;
 public:
     Piece() = default;
-    static Piece make_piece(const int, const int, const int, const char, Board*);
-    static Piece make_piece(const int, const int, const char, Board*);
-    static Piece make_piece(Board*);
+    static inline Piece make_piece(const int, const int, const int, const char, Board*);
+    static inline Piece make_piece(const int, const int, const char, Board*);
+    static inline Piece make_piece(Board*);
     static inline int getColour (const char piece) {return (piece == '.' ? 2 : (piece == 'q' || piece == 'r' || piece == 'b' || piece == 'n' || piece == 'k' || piece == 'p' ? 1 : 0));}
     static inline char sameColour(const char basePiece, const char piece) {return getColour(basePiece) == getColour(piece) ? piece : oppositePiece[piece];}
     friend ostream& operator<<(ostream& os, const Piece& thisPiece) 
@@ -35,12 +53,12 @@ public:
         return os<<thisPiece.getPiece();
 #endif 
     }
-    int getColour () const;
-    pair<int,int> getPos() const;
-    char getPiece () const;
-    void setColour (const int);
-    void setPos (const int, const int);
-    void setPiece (const char);
+    inline int getColour () const;
+    inline pair<int,int> getPos() const;
+    inline char getPiece () const;
+    inline void setColour (const int);
+    inline void setPos (const int, const int);
+    inline void setPiece (const char);
     void getMoves (vector<Move> &);
 
 private:
@@ -62,7 +80,7 @@ public:
     Board();
     Board(char [8][8]);
     pair<int,bool> nextTurn(bool &);
-    void displayBoard(const bool);
+    void displayBoard(const bool) const;
     bool displayPieceMoves(const char);
     void getPieceMoves(const char);
     bool undoMove();
@@ -70,14 +88,13 @@ public:
     bool Load_From_File(const string, bool &);
 
 private:
-    vector<pair<int,int>> returnPos(char);
+    void initialize();
+    vector<pair<int,int>> returnPos(char) const;
     void applyMove(Move &);
     bool stalemate(const bool);
-    bool repetition();
     int checkmate(const bool);
     void updateBoard();
-    vector<Move> recordedMoves;
-    vector<Move> currentOptions;
+    vector<Move> recordedMoves, currentOptions;
 };
 
 #include "Move.cpp"

@@ -1,9 +1,28 @@
+/**********************************************************************************
+*      Board.cpp                                                                  *
+*                                                                                 *
+*                                                                                 *
+*      This program is free software; you can redistribute it and/or modify       *
+*      it under the terms of the GNU General Public License as published by       *
+*      the Free Software Foundation; either version 2 of the License, or          *
+*      (at your option) any later version.                                        *
+*                                                                                 *
+*      This program is distributed in the hope that it will be useful,            *
+*      but WITHOUT ANY WARRANTY; without even the implied warranty of             *
+*      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
+*      GNU General Public License for more details.                               *
+*                                                                                 *
+*      You should have received a copy of the GNU General Public License          *
+*      along with this program; if not, see <http://www.gnu.org/licenses/>.       *
+*                                                                                 *
+***********************************************************************************/
+
 #include "Chess.h"
 
 //Constructors
 Board::Board()
 {
-    currentOptions.clear(), recordedMoves.clear();
+    initialize();
     char start [8][8] = {{'r','n','b','q','k','b','n','r'},
                          {'p','p','p','p','p','p','p','p'},
                          {'.','.','.','.','.','.','.','.'},
@@ -19,7 +38,7 @@ Board::Board()
 
 Board::Board(char start[8][8])
 {
-    currentOptions.clear(), recordedMoves.clear();
+    initialize();
     for (auto& x : range)
         for (auto& y : range)
             board[x][y] = Piece::make_piece(Piece::getColour(start[x][y]), x, y, tolower(start[x][y]), this);
@@ -34,7 +53,7 @@ pair<int,bool> Board::nextTurn(bool &playerTurn)
     return make_pair(tmpCheck, max(tmpCheck, static_cast<int>(stalemate(playerTurn))));
 }
 
-void Board::displayBoard(const bool side)
+void Board::displayBoard(const bool side) const
 {
     int startX = (side ? 11 : 0), endX = (side ? -1 : 12);
     cout<<endl<<endl;
@@ -43,13 +62,13 @@ void Board::displayBoard(const bool side)
         if (x == 1 || x == 10)
             cout<<" ~+~~~~~~~~~~~~~~~~~+~"<<endl;
         else if (x == 0 || x == 11)
-            cout<<" X\u2502 0 1 2 3 4 5 6 7 \u2502X"<<endl;
+            cout<<" X| 0 1 2 3 4 5 6 7 |X"<<endl;
         else
         {
-            cout<<" "<<x-2<<"\u2502 ";
+            cout<<" "<<x-2<<"| ";
             for (auto& y : range)
                 cout<<board[x-2][y]<<" ";
-            cout<<"\u2502"<<x-2<<endl;
+            cout<<"|"<<x-2<<endl;
         }
     }
     cout<<endl;
@@ -57,11 +76,11 @@ void Board::displayBoard(const bool side)
 
 bool Board::displayPieceMoves(const char piece)
 {
-    if (!currentOptions.empty())
+    bool movesAvailable = (find_if(currentOptions.begin(), currentOptions.end(), [piece, this](auto& x) {return board[x.startX][x.startY].getPiece() == piece;}) != currentOptions.end());
+    if (!currentOptions.empty() && movesAvailable)
     {
-        bool extraneous = (find_if(currentOptions.begin(), currentOptions.end(), [piece, this](auto& x) {return board[x.startX][x.startY].getPiece() != piece;}) == currentOptions.end());
         for (auto& y : currentOptions)
-            if (extraneous || board[y.startX][y.startY].getPiece() == piece)
+            if (board[y.startX][y.startY].getPiece() == piece)
                 cout<<y.startX<<" "<<y.startY<<" "<<y.endX<<" "<<y.endY<<" "<<(y.castle ? "(castle) " : (y.takenPiece == '.' ? " " : y.pawnSpecial == 1 ? "(en passant) " : "(take piece) "))
                     <<(y.pawnSpecial == 2 ? "(promote pawn " : " ")<<endl;
         int sX, sY, eX, eY, pointer;
@@ -77,10 +96,12 @@ bool Board::displayPieceMoves(const char piece)
             cout<<"Enter end Y position (0 - 7): ";
             getNum<int>(eY);
             for (unsigned int x = 0; x < currentOptions.size() && !valid; x++)
-                if ((extraneous || board[currentOptions[x].startX][currentOptions[x].startY].getPiece() == piece) && currentOptions[x].startX == sX && currentOptions[x].startY == sY && currentOptions[x].endX == eX && currentOptions[x].endY == eY)
+            {
+                if (board[currentOptions[x].startX][currentOptions[x].startY].getPiece() == piece && currentOptions[x].startX == sX && currentOptions[x].startY == sY && currentOptions[x].endX == eX && currentOptions[x].endY == eY)
                     valid = true, pointer = x;
                 else if (x == currentOptions.size() - 1)
                     cout<<"Invalid position. Please try again."<<endl;
+            }
         }
         recordedMoves.push_back(currentOptions[pointer]);
         applyMove(recordedMoves.back());
@@ -191,9 +212,22 @@ bool Board::Load_From_File(const string fileName, bool &playerTurn)
 }
 
 //Private member functions
-vector<pair<int,int>> Board::returnPos (char piece)
+void Board::initialize()
+{
+#ifdef __unix__
+    system("printf '\e[8;30;75t'");
+    system("clear");
+#elif _WIN32
+    system("MODE 80,25");
+    system("cls");
+#endif
+    currentOptions.clear(), recordedMoves.clear();
+}
+
+vector<pair<int,int>> Board::returnPos (char piece) const
 {
     vector<pair<int,int>> pos;
+    //iterate through all the positions on the board to find all occurences of the piece selected
     for (auto& x : range)
         for (auto& y : range)
             if (board[x][y].getPiece() == piece)
@@ -232,6 +266,8 @@ void Board::applyMove(Move& chosen)
 bool Board::stalemate (const bool colour)
 {
     vector<Move> tmp;
+    //iterate through all positions on the board and see if there are any pieces that can move
+    //if there are none, then it is stalemate
     for (unsigned int x = 0; x < 8 && tmp.empty(); x++)
         for (auto& y : range)
             if (board[x][y].getColour() == colour && board[x][y].getPiece() != '.')
@@ -239,22 +275,22 @@ bool Board::stalemate (const bool colour)
     return tmp.empty();
 }
 
-bool Board::repetition()
-{
-//TODO
-    return false; //TEMP
-}
-
 // -1 = appended valid moves, 0 = not in check, 1 = checkmate
 int Board::checkmate (bool side)
 {
+    //checks if there is even a king on the board
     vector<pair<int,int>> kingPos = returnPos(side ? 'k' : 'K');
     if (kingPos.empty()) return 1;
+    //checks if the king is in check and by which pieces
     vector<pair<int,int>> checker = board[kingPos[0].first][kingPos[0].second].inCheck(board[kingPos[0].first][kingPos[0].second].getPiece());
     if (checker.empty()) return 0;
 
     board[kingPos[0].first][kingPos[0].second].getMoves(currentOptions);
+    //if the king is checked by more than one piece, then only the king can move
+    //if the king cannot move, it is checkmated
     if (checker.size() > 1) return (currentOptions.empty() ? 1 : -1);
+    //if the king is only checked by one piece, iterate through all positions between the king and the piece checking the king
+    //check if any ally piece can block the line of sight or take the piece checking the king
     else if (checker.size() == 1)
     {
         unsigned int posX = checker[0].first, posY = checker[0].second;
@@ -264,7 +300,8 @@ int Board::checkmate (bool side)
         for (unsigned int i = 0, x = posX, y = posY; i < 8 && inBound(x, y) && (x != kingPos[0].first || y != kingPos[0].second) && (tolower(board[posX][posY].getPiece()) != 'n' || i == 0); i++, x += distX, y += distY)
         {
             vector<pair<int,int>> tmpPos = board[x][y].inCheck(board[posX][posY].getPiece());
-            for (auto& j : tmpPos) //iterate through all pieces that can move to the current position of (x, y)
+            //iterate through all pieces that can move to the current position of (x, y)
+            for (auto& j : tmpPos)
                 if (tolower(board[j.first][j.second].getPiece()) != 'p' || (posX == x && posY == y)) //if the piece is not a pawn, or if this is the first iteration, add it to currentOptions as a possible move
                     currentOptions.push_back(Move(j.first, j.second, x, y, board[x][y].getPiece()));
             if ((side && board[x-1][y].getPiece() == 'p') || (!side && board[x+1][y].getPiece() == 'P'))
